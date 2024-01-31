@@ -8,7 +8,7 @@ FILENAME_1 = "words.csv"
 FILENAME_2 = "sentences.csv"
 
 
-def remove_accent(word: str) -> str:
+def remove_accent(word):
     """
     Remove accent from word
     :param word: str
@@ -17,7 +17,7 @@ def remove_accent(word: str) -> str:
     return word.replace('́', '')
 
 
-def csv_writer(writer: csv.DictWriter, array: list[dict]) -> None:
+def csv_writer(writer, array):
     """
     Write line in csv file
     :param writer: DictWriter[str]
@@ -28,7 +28,7 @@ def csv_writer(writer: csv.DictWriter, array: list[dict]) -> None:
         writer.writerows(array)
 
 
-def parser_sentences(soup: BeautifulSoup, url: str) -> None:
+def parser_sentences(soup, url):
     """
     Parsing usage examples from https://ru.wiktionary.org/
     :param soup: BeautifulSoup
@@ -54,20 +54,20 @@ def parser_sentences(soup: BeautifulSoup, url: str) -> None:
             for example in example_blocks:
                 if example.get_text().strip() != "Отсутствует пример употребления (см. рекомендации).":
                     sentences.append({"Предложение": example.get_text().strip().replace(
-                        NON_BREAKING_SPACE, ' '), "Ссылка": url})
+                        NON_BREAKING_SPACE, ' ')})
     else:
         row_data = soup.find_all('span', class_="example-block")
         for i in row_data:
             if i.get_text().strip() != "Отсутствует пример употребления (см. рекомендации).":
                 sentences.append({"Предложение": i.get_text().strip().replace(
-                    NON_BREAKING_SPACE, ' '), "Ссылка": url})
+                    NON_BREAKING_SPACE, ' ')})
     csv_writer(writer_2, sentences)
 
 
 def parser_words(
-        table1: BeautifulSoup,
-        main_word: str,
-        url: str) -> list[dict]:
+        table1,
+        main_word,
+        url):
     """
     Parsing all forms of the word from https://ru.wiktionary.org/
     :param table1: BeautifulSoup
@@ -98,9 +98,9 @@ def parser_words(
 
 
 def parser(
-        main_word: str,
-        writer_1: csv.DictWriter,
-        writer_2: csv.DictWriter) -> None:
+        main_word,
+        writer_1,
+        writer_2):
     """
     Parsing usage examples and words from https://ru.wiktionary.org/
     :param main_word: str
@@ -118,7 +118,7 @@ def parser(
     csv_writer(writer_2, sentences)
 
 
-def find(url: str, writer_1, writer_2):
+def find(url, writer_1, writer_2):
     page = requests.get(url)
     soup = BeautifulSoup(page.text, 'lxml')
     table1 = soup.find('div', class_="index")
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     file_2 = open(FILENAME_2, mode='w', newline='', encoding='utf-8')
     writer_1 = csv.DictWriter(file_1, fieldnames=["Слово", "Ссылка"])
     writer_1.writeheader()
-    writer_2 = csv.DictWriter(file_2, fieldnames=["Предложение", "Ссылка"])
+    writer_2 = csv.DictWriter(file_2, fieldnames=["Предложение"])
     writer_2.writeheader()
     page = requests.get(MAIN_URL)
     soup = BeautifulSoup(page.text, 'lxml')
