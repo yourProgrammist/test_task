@@ -14,7 +14,7 @@ def remove_accent(word):
     :param word: str
     :return: str
     """
-    return word.replace('́', '')
+    return word.replace('', '')
 
 
 def csv_writer(writer, array):
@@ -52,15 +52,23 @@ def parser_sentences(soup, url):
                 example_blocks.append(descendant)
         if found_third_headline:
             for example in example_blocks:
+                m = example.find('span', class_="example-details")
+                d = ''
+                if m:
+                    d = m.get_text()
                 if example.get_text().strip() != "Отсутствует пример употребления (см. рекомендации).":
-                    sentences.append({"Предложение": example.get_text().strip().replace(
-                        NON_BREAKING_SPACE, ' ')})
+                    sentences.append({"Предложение": example.get_text().replace(d, '').strip().replace(
+                        NON_BREAKING_SPACE, ' '), "Ссылка": url})
     else:
         row_data = soup.find_all('span', class_="example-block")
         for i in row_data:
+            m = i.find('span', class_="example-details")
+            d = ''
+            if m: 
+                d = m.get_text()
             if i.get_text().strip() != "Отсутствует пример употребления (см. рекомендации).":
-                sentences.append({"Предложение": i.get_text().strip().replace(
-                    NON_BREAKING_SPACE, ' ')})
+                sentences.append({"Предложение": i.get_text().replace(d, '').strip().replace(
+                    NON_BREAKING_SPACE, ' '), "Ссылка": url})
     csv_writer(writer_2, sentences)
 
 
@@ -136,13 +144,12 @@ if __name__ == "__main__":
     file_2 = open(FILENAME_2, mode='w', newline='', encoding='utf-8')
     writer_1 = csv.DictWriter(file_1, fieldnames=["Слово", "Ссылка"])
     writer_1.writeheader()
-    writer_2 = csv.DictWriter(file_2, fieldnames=["Предложение"])
+    writer_2 = csv.DictWriter(file_2, fieldnames=["Предложение", "Ссылка"])
     writer_2.writeheader()
     page = requests.get(MAIN_URL)
     soup = BeautifulSoup(page.text, 'lxml')
     table1 = soup.find('div', align="center")
     for j in table1.find_next('p').find_all('a')[1:]:
-        if j.get_text() not in ['Ь', 'Ъ']:
             l_url = "https://ru.wiktionary.org" + j.get('href')
             page = requests.get(l_url)
             soup = BeautifulSoup(page.text, 'lxml')
@@ -154,5 +161,6 @@ if __name__ == "__main__":
                         k.find_next('a').get('href')
                     find(url, writer_1, writer_2)
             find(l_url, writer_1, writer_2)
-    file_1.close()
+    
     file_2.close()
+
